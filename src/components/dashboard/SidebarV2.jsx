@@ -17,10 +17,24 @@ import {
   X,
 } from 'lucide-react';
 
-// Mock implementations for isolated preview
+/* ==========================================================================
+  IMPORTANT: PREVIEW ENVIRONMENT FIX
+  The live preview here cannot access your local '../../context/AuthContext' 
+  or '../../utils/conversationStorage' files, which caused the build to crash.
+
+  To see your REAL Gmail ID and account data in your own project, simply 
+  delete the two mock functions below and uncomment your original imports:
+  ==========================================================================
+*/
+
+// UNCOMMENT THESE IN YOUR LOCAL APP:
+// import { useAuth } from '../../context/AuthContext';
+// import { sortConversations } from '../../utils/conversationStorage';
+
+// DELETE THESE TWO MOCK FUNCTIONS IN YOUR LOCAL APP:
 function useAuth() {
   return {
-    user: { name: 'Demo User', email: 'demo@plexis.app' },
+    user: { name: 'My Account', email: 'your.account@gmail.com', avatar: null },
     logout: () => console.log('Logout triggered'),
   };
 }
@@ -29,6 +43,8 @@ function sortConversations(conversations) {
   if (!conversations) return [];
   return [...conversations].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
+/* ========================================================================= */
+
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -307,10 +323,24 @@ export default function SidebarV2({
     .filter(Boolean)
     .join(' ');
 
+  // Robust mobile close handler fallback
+  const handleCloseMobile = (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    // Try onCloseMobile first, if not provided, try onToggleCollapse
+    if (typeof onCloseMobile === 'function') {
+      onCloseMobile();
+    } else if (typeof onToggleCollapse === 'function') {
+      onToggleCollapse();
+    }
+  };
+
   // Close drawer after selecting a chat on mobile.
   const handleSelect = (id) => {
     onSelectChat(id);
-    if (isMobile && onCloseMobile) onCloseMobile();
+    if (isMobile) handleCloseMobile();
   };
 
   return (
@@ -324,7 +354,7 @@ export default function SidebarV2({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            onClick={onCloseMobile}
+            onClick={handleCloseMobile}
           />
         )}
       </AnimatePresence>
@@ -373,14 +403,9 @@ export default function SidebarV2({
               {isMobile ? (
                 <button
                   className="v2-sidebar-toggle"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (onCloseMobile) onCloseMobile();
-                    else if (onToggleCollapse) onToggleCollapse();
-                  }}
+                  onClick={handleCloseMobile}
                   aria-label="Close sidebar"
-                  style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, pointerEvents: 'auto' }}
                 >
                   <X size={20} />
                 </button>
@@ -523,7 +548,7 @@ export default function SidebarV2({
                   <Settings size={16} />
                 </button>
               </Tip>
-              <Tip label={user?.name || 'Profile'} side="right">
+              <Tip label={user?.name || user?.email || 'Profile'} side="right">
                 <button
                   className="v2-sidebar-icon-btn"
                   onClick={() => setProfileOpen((v) => !v)}
@@ -532,12 +557,12 @@ export default function SidebarV2({
                     <img
                       className="v2-profile-avatar-sm"
                       src={user.avatar}
-                      alt={user.name}
+                      alt={user?.name || 'User'}
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="v2-profile-avatar-fallback-sm">
-                      {user?.name?.charAt(0) || '?'}
+                      {user?.name?.charAt(0) || user?.email?.charAt(0) || '?'}
                     </div>
                   )}
                 </button>
@@ -553,16 +578,16 @@ export default function SidebarV2({
                   <img
                     className="v2-profile-avatar"
                     src={user.avatar}
-                    alt={user.name}
+                    alt={user?.name || 'User'}
                     referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="v2-profile-avatar-fallback">
-                    {user?.name?.charAt(0) || '?'}
+                    {user?.name?.charAt(0) || user?.email?.charAt(0) || '?'}
                   </div>
                 )}
                 <div className="v2-profile-info">
-                  <span className="v2-profile-name">{user?.name}</span>
+                  <span className="v2-profile-name">{user?.name || user?.email || 'User'}</span>
                   <span className="v2-profile-email">{user?.email}</span>
                 </div>
               </button>
@@ -584,19 +609,19 @@ export default function SidebarV2({
                     <div className="v2-profile-dropdown-avatar">
                       <img
                         src={user.avatar}
-                        alt={user.name}
+                        alt={user?.name || 'User'}
                         referrerPolicy="no-referrer"
                       />
                     </div>
                   ) : (
                     <div className="v2-profile-dropdown-avatar">
                       <div className="v2-profile-dropdown-avatar-fallback">
-                        {user?.name?.charAt(0) || '?'}
+                        {user?.name?.charAt(0) || user?.email?.charAt(0) || '?'}
                       </div>
                     </div>
                   )}
                   <div className="v2-profile-dropdown-info">
-                    <span className="v2-profile-dropdown-name">{user?.name}</span>
+                    <span className="v2-profile-dropdown-name">{user?.name || user?.email || 'User'}</span>
                     <span className="v2-profile-dropdown-email">{user?.email}</span>
                   </div>
                 </div>
