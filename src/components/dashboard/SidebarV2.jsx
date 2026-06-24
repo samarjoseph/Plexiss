@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -14,9 +14,21 @@ import {
   Sparkles,
   Settings,
   ChevronsLeft,
+  X,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { sortConversations } from '../../utils/conversationStorage';
+
+// Mock implementations for isolated preview
+function useAuth() {
+  return {
+    user: { name: 'Demo User', email: 'demo@plexis.app' },
+    logout: () => console.log('Logout triggered'),
+  };
+}
+
+function sortConversations(conversations) {
+  if (!conversations) return [];
+  return [...conversations].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+}
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -56,11 +68,12 @@ function useIsMobile(breakpoint = 1024) {
   return isMobile;
 }
 
-/* ───────────────────────── Tooltip (desktop-only, minimal) ──────────────────────── */
+/* ───────────────────────── Tooltip (Upgraded) ──────────────────────── */
 
 function Tip({ children, label, shortcut, side = 'right', className = '', ...rest }) {
   const [show, setShow] = useState(false);
   const isMobile = useIsMobile();
+  const timer = useRef(null);
 
   // On mobile / touch devices, render children directly — NO tooltip at all.
   if (isMobile) {
@@ -75,16 +88,27 @@ function Tip({ children, label, shortcut, side = 'right', className = '', ...res
     );
   }
 
+  const handleEnter = () => {
+    // 300ms delay to prevent ugly flickering
+    timer.current = setTimeout(() => setShow(true), 300);
+  };
+
+  const handleLeave = () => {
+    if (timer.current) clearTimeout(timer.current);
+    setShow(false);
+  };
+
   const pos =
     side === 'right'
-      ? { left: '100%', top: '50%', transform: 'translateY(-50%)', marginLeft: 8 }
-      : { bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 6 };
+      ? { left: 'calc(100% + 14px)', top: '50%', transform: 'translateY(-50%)' }
+      : { bottom: 'calc(100% + 12px)', left: '50%', transform: 'translateX(-50%)' };
 
+  // Advanced inline styling applied directly to override ugly CSS
   return (
     <div
       className={`v2-tip-wrap ${className}`}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
       style={{ position: 'relative', display: 'inline-flex' }}
       {...rest}
     >
@@ -92,15 +116,43 @@ function Tip({ children, label, shortcut, side = 'right', className = '', ...res
       <AnimatePresence>
         {show && (
           <motion.div
-            className="v2-tooltip"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.08, ease: 'easeOut' }}
-            style={{ ...pos, position: 'absolute' }}
+            initial={{ opacity: 0, scale: 0.94, x: side === 'right' ? -6 : 0, y: side === 'top' ? 6 : 0 }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            style={{
+              ...pos,
+              position: 'absolute',
+              zIndex: 9999,
+              background: 'rgba(15, 15, 15, 0.98)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap'
+            }}
           >
-            <span className="v2-tooltip-label">{label}</span>
-            {shortcut && <span className="v2-tooltip-shortcut">{shortcut}</span>}
+            <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#f0f2f5', letterSpacing: '0.01em' }}>
+              {label}
+            </span>
+            {shortcut && (
+              <span style={{
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                color: '#8b95a5',
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                letterSpacing: '0.04em'
+              }}>
+                {shortcut}
+              </span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -258,7 +310,7 @@ export default function SidebarV2({
   // Close drawer after selecting a chat on mobile.
   const handleSelect = (id) => {
     onSelectChat(id);
-    if (isMobile) onCloseMobile?.();
+    if (isMobile && onCloseMobile) onCloseMobile();
   };
 
   return (
@@ -317,14 +369,20 @@ export default function SidebarV2({
                 </motion.span>
               </div>
 
-              {/* Desktop: collapse chevron. Mobile: close drawer. */}
+              {/* Desktop: collapse chevron. Mobile: robust close drawer icon. */}
               {isMobile ? (
                 <button
                   className="v2-sidebar-toggle"
-                  onClick={onCloseMobile}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (onCloseMobile) onCloseMobile();
+                    else if (onToggleCollapse) onToggleCollapse();
+                  }}
                   aria-label="Close sidebar"
+                  style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <ChevronsLeft size={16} />
+                  <X size={20} />
                 </button>
               ) : (
                 <Tip label="Collapse" shortcut="Ctrl+B" side="top">
