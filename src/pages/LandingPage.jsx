@@ -29,16 +29,8 @@ export default function LandingPage() {
             Landing page: PlexisLogo is purely decorative — no sidebar to toggle.
             Use the same visual as the sidebar logo button for brand consistency.
           */}
-          <div className="nav-brand-logo-wrap" aria-hidden="true" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '34px',
-            height: '34px',
-            borderRadius: '8px',
-            color: 'var(--text, white)'
-          }}>
-            <Sparkles size={18} />
+          <div className="nav-brand-logo-wrap" aria-hidden="true">
+            <PlexisLogo width={28} height={28} />
           </div>
           <span className="nav-brand-text">Plexis</span>
         </div>

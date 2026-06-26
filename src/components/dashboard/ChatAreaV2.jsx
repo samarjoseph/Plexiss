@@ -7,6 +7,7 @@ import {
 import MessageBubbleV2 from './MessageBubbleV2';
 import ThinkingV2 from './ThinkingV2';
 import { useAuth } from '../../context/AuthContext';
+import { LogoToggle } from './SidebarV2';
 
 /* ─────────────────────────────────────────────────────────────────
    useIsDesktop: true when viewport >= 1024px
@@ -35,6 +36,8 @@ export default function ChatAreaV2({
   isLoading,
   activeDatasetName,
   onOpenSidebar,
+  sidebarCollapsed,
+  onToggleSidebar,
 }) {
   const { user } = useAuth();
   const isDesktop = useIsDesktop();
@@ -91,6 +94,10 @@ export default function ChatAreaV2({
           >
             <Menu size={20} />
           </button>
+        )}
+
+        {isDesktop && sidebarCollapsed && (
+          <LogoToggle collapsed={true} onToggle={onToggleSidebar} />
         )}
 
         <div className={`v2-chat-header-brand ${!isDesktop ? 'v2-chat-header-brand--mobile' : ''}`}>

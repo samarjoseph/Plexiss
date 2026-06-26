@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { sortConversations } from '../../utils/conversationStorage';
+import PlexisLogo from '../brand/PlexisLogo';
 
 /* ─────────────────────────────────────────────────────────────────
    AI TITLE GENERATION
@@ -97,7 +98,7 @@ function useIsDesktop() {
 /* ─────────────────────────────────────────────────────────────────
    TOOLTIP
    ───────────────────────────────────────────────────────────────── */
-function Tip({ children, label, shortcut, side = 'right', disabled = false }) {
+export function Tip({ children, label, shortcut, side = 'right', disabled = false }) {
   const [show, setShow] = useState(false);
 
   const pos =
@@ -116,13 +117,13 @@ function Tip({ children, label, shortcut, side = 'right', disabled = false }) {
     >
       {children}
       <AnimatePresence>
-        {show && !disabled && (
+        {show && !disabled && window.innerWidth >= 1024 && (
           <motion.div
             className="v2-tooltip"
-            initial={{ opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.88 }}
-            transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{ ...pos, position: 'absolute', zIndex: 200, whiteSpace: 'nowrap' }}
           >
             <span className="v2-tooltip-label">{label}</span>
@@ -141,7 +142,7 @@ function Tip({ children, label, shortcut, side = 'right', disabled = false }) {
    - Click: toggles sidebar collapsed state
    - Tooltip shows action + shortcut
    ───────────────────────────────────────────────────────────────── */
-function LogoToggle({ collapsed, onToggle }) {
+export function LogoToggle({ collapsed, onToggle }) {
   const [hovered, setHovered] = useState(false);
   const label = collapsed ? 'Open Sidebar' : 'Close Sidebar';
   const shortcut = 'Ctrl+B';
@@ -149,6 +150,7 @@ function LogoToggle({ collapsed, onToggle }) {
   return (
     <Tip label={label} shortcut={shortcut} side={collapsed ? 'right' : 'right'}>
       <motion.button
+        layoutId="v2-logo-toggle"
         className="v2-logo-toggle"
         onClick={onToggle}
         onMouseEnter={() => setHovered(true)}
@@ -161,9 +163,9 @@ function LogoToggle({ collapsed, onToggle }) {
           className="v2-logo-icon"
           animate={{ opacity: hovered ? 0 : 1, scale: hovered ? 0.55 : 1 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', display: 'flex' }}
         >
-          <Sparkles size={18} />
+          <PlexisLogo width={18} height={18} />
         </motion.span>
 
         {/* PanelLeft — appears on hover */}
@@ -177,8 +179,8 @@ function LogoToggle({ collapsed, onToggle }) {
         </motion.span>
 
         {/* Invisible spacer keeps button size stable */}
-        <span style={{ visibility: 'hidden' }}>
-          <Sparkles size={18} />
+        <span style={{ visibility: 'hidden', display: 'flex' }}>
+          <PlexisLogo width={18} height={18} />
         </span>
       </motion.button>
     </Tip>
@@ -458,22 +460,7 @@ export default function SidebarV2({
 
   return (
     <>
-      {/* ── DESKTOP: Floating logo when sidebar is collapsed ── */}
-      {isDesktop && (
-        <AnimatePresence>
-          {collapsed && (
-            <motion.div
-              className="v2-sidebar-floating-logo"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <LogoToggle collapsed={true} onToggle={onToggleCollapse} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+      {/* ── MOBILE: Sidebar Overlay ── */}
 
       {/* ── SIDEBAR PANEL ── */}
       <motion.aside
@@ -500,10 +487,9 @@ export default function SidebarV2({
               {isDesktop ? (
                 <LogoToggle collapsed={false} onToggle={onToggleCollapse} />
               ) : (
-                /* Mobile: Logo is decorative only — menu btn in header controls sidebar */
-                <span className="v2-logo-toggle v2-logo-toggle--static" aria-hidden="true">
-                  <Sparkles size={18} />
-                </span>
+                <div className="v2-sidebar-logo-mobile" style={{ display: 'flex' }}>
+                  <PlexisLogo width={18} height={18} />
+                </div>
               )}
               <motion.span
                 className="v2-sidebar-logo-text"

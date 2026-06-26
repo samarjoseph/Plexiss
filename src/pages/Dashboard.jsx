@@ -274,6 +274,8 @@ export default function Dashboard() {
         isLoading={isLoading}
         activeDatasetName={activeConversation?.activeDatasetName}
         onOpenSidebar={() => setSidebarMobileOpen(true)}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
       />
 
       {/* Floating Analytics Toggle */}
