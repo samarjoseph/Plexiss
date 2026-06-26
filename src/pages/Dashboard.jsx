@@ -38,7 +38,6 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [chartType, setChartType] = useState('bar');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [toasts, setToasts] = useState([]);
 
   const activeConversation = conversations.find((c) => c.id === activeId) || null;
 
@@ -59,12 +58,6 @@ export default function Dashboard() {
   }, [conversations, userId]);
 
   // ── Helpers ────────────────────────────────────────────────
-  const showToast = (message, type = 'error') => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
-  };
-
   const handleNewChat = () => {
     setActiveId(null);
     setInputText('');
@@ -336,29 +329,6 @@ export default function Dashboard() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
-
-      {/* Toasts */}
-      <div className="v2-toast-container">
-        <AnimatePresence>
-          {toasts.map((toast) => {
-            if (toast.type === 'connection') return null;
-            return (
-              <motion.div
-                key={toast.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                className={`v2-toast ${toast.type}`}
-              >
-                {toast.type === 'error' && (
-                  <AlertCircle size={16} className="v2-toast-icon" />
-                )}
-                <span>{toast.message}</span>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
     </motion.div>
   );
 }
