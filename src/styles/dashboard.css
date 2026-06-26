@@ -2373,10 +2373,9 @@ body.is-dragging * {
 /* "?"? ANALYTICS BUTTON RUNNING BORDER "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"? */
 .v2-analytics-btn {
   position: relative;
-  overflow: hidden;
   border-radius: 8px;
   background: var(--dash-surface);
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid var(--dash-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2385,43 +2384,9 @@ body.is-dragging * {
   color: var(--dash-text);
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 1;
 }
 
-.v2-analytics-btn::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 70%,
-    var(--dash-accent) 100%
-  );
-  animation: spin 3s linear infinite;
-  z-index: -2;
-}
-
-.v2-analytics-btn::after {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  background: var(--dash-surface);
-  border-radius: 7px;
-  z-index: -1;
-}
-
-.v2-analytics-btn:hover::after {
-  background: rgba(255,255,255,0.08);
-}
-
-.v2-analytics-btn svg {
-  z-index: 10;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.v2-analytics-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 12px var(--dash-accent-glow);
 }
