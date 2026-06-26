@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { Sparkles, Globe, ExternalLink, FileSpreadsheet, Copy, Check } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 export default function MessageBubbleV2({ message }) {
   const [copied, setCopied] = useState(false);
@@ -39,9 +40,11 @@ export default function MessageBubbleV2({ message }) {
           {message.text}
         </div>
         <div className="v2-msg-actions v2-msg-actions-right">
-          <button type="button" className="v2-copy-btn" onClick={handleCopy} title="Copy message">
-            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-          </button>
+          <Tooltip label="Copy message" side="top">
+            <button type="button" className="v2-copy-btn" onClick={handleCopy}>
+              {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+            </button>
+          </Tooltip>
         </div>
       </div>
     );
@@ -108,9 +111,11 @@ export default function MessageBubbleV2({ message }) {
         )}
 
         <div className="v2-msg-actions">
-          <button type="button" className="v2-copy-btn" onClick={handleCopy} title="Copy AI response">
-            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-          </button>
+          <Tooltip label="Copy AI response" side="top">
+            <button type="button" className="v2-copy-btn" onClick={handleCopy}>
+              {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+            </button>
+          </Tooltip>
         </div>
       </div>
     </motion.div>

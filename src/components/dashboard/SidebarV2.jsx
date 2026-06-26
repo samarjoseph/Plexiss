@@ -13,11 +13,11 @@ import {
   LogOut,
   Sparkles,
   Settings,
-  PanelLeft,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { sortConversations } from '../../utils/conversationStorage';
 import PlexisLogo from '../brand/PlexisLogo';
+import Tooltip from '../ui/Tooltip';
 
 /* ─────────────────────────────────────────────────────────────────
    AI TITLE GENERATION
@@ -96,46 +96,6 @@ function useIsDesktop() {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   TOOLTIP
-   ───────────────────────────────────────────────────────────────── */
-export function Tip({ children, label, shortcut, side = 'right', disabled = false }) {
-  const [show, setShow] = useState(false);
-
-  const pos =
-    side === 'right'
-      ? { left: '100%', top: '50%', transform: 'translateY(-50%)', marginLeft: 10 }
-      : side === 'top'
-        ? { bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 8 }
-        : { bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 8 };
-
-  return (
-    <div
-      className="v2-tip-wrap"
-      onMouseEnter={() => !disabled && setShow(true)}
-      onMouseLeave={() => setShow(false)}
-      style={{ position: 'relative', display: 'inline-flex' }}
-    >
-      {children}
-      <AnimatePresence>
-        {show && !disabled && window.innerWidth >= 1024 && (
-          <motion.div
-            className="v2-tooltip"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            style={{ ...pos, position: 'absolute', zIndex: 200, whiteSpace: 'nowrap' }}
-          >
-            <span className="v2-tooltip-label">{label}</span>
-            {shortcut && <span className="v2-tooltip-shortcut">{shortcut}</span>}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
    LOGO TOGGLE BUTTON (Desktop only)
    - Shows Sparkles logo by default
    - On hover: morphs into PanelLeft (sidebar) icon
@@ -148,7 +108,7 @@ export function LogoToggle({ collapsed, onToggle }) {
   const shortcut = 'Ctrl+B';
 
   return (
-    <Tip label={label} shortcut={shortcut} side={collapsed ? 'right' : 'right'}>
+    <Tooltip label={label} shortcut={shortcut} side={collapsed ? 'right' : 'right'}>
       <motion.button
         layoutId="v2-logo-toggle"
         className="v2-logo-toggle"
@@ -183,7 +143,7 @@ export function LogoToggle({ collapsed, onToggle }) {
           <PlexisLogo width={18} height={18} />
         </span>
       </motion.button>
-    </Tip>
+    </Tooltip>
   );
 }
 
@@ -305,7 +265,7 @@ const ITEM_H = 54;
 const SECTION_H = 34;
 const OVERSCAN = 8;
 
-function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onTogglePin }) {
+function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onTogglePin, activeSearch }) {
   const containerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportH, setViewportH] = useState(400);
@@ -338,7 +298,7 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
     addSection('Recent', <MessageSquare size={11} />, groups.recent);
 
     if (!flat.length) {
-      flat.push({ type: 'empty', y: 0, id: 'empty' });
+      flat.push({ type: activeSearch ? 'empty-search' : 'empty', y: 0, id: 'empty' });
       y = 80;
     }
 
@@ -359,14 +319,14 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
     >
       <div style={{ position: 'relative', height: totalH, minHeight: '100%' }}>
         {visible.map((item) => {
-          if (item.type === 'empty') {
+          if (item.type === 'empty' || item.type === 'empty-search') {
             return (
               <div
                 key="empty"
-                className="v2-sidebar-empty"
-                style={{ position: 'absolute', top: item.y, left: 0, right: 0 }}
+                className={item.type === 'empty-search' ? 'v2-sidebar-empty-search' : 'v2-sidebar-empty'}
+                style={{ position: 'absolute', top: item.y, left: 0, right: 0, textAlign: 'center', color: 'var(--dash-dim)', padding: '20px 0' }}
               >
-                No conversations yet
+                {item.type === 'empty-search' ? 'No matching conversations' : 'No conversations yet'}
               </div>
             );
           }
@@ -404,18 +364,6 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
 
 /* ─────────────────────────────────────────────────────────────────
    SIDEBARV2
-   
-   Desktop (>= 1024px):
-     - Plexis logo IS the sidebar toggle (always visible)
-     - When open: logo sits inside sidebar header
-     - When collapsed: logo floats outside at fixed top-left position
-     - Hover: logo morphs into PanelLeft icon
-     - Click: opens/closes sidebar
-   
-   Mobile (< 1024px):
-     - Logo always lives inside the sidebar (mobile overlay)
-     - Hamburger button in ChatAreaV2 header controls open/close
-     - No hover transformation, no logo floating
    ───────────────────────────────────────────────────────────────── */
 export default function SidebarV2({
   collapsed,
@@ -435,15 +383,29 @@ export default function SidebarV2({
   const { user, logout } = useAuth();
   const isDesktop = useIsDesktop();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchLocal, setSearchLocal] = useState('');
+
+  const activeSearch = searchQuery || searchLocal;
+
+  const filteredConversations = useMemo(() => {
+    let list = Object.values(conversations);
+    if (activeSearch) {
+      const lowerQuery = activeSearch.toLowerCase();
+      list = list.filter((chat) => {
+        const matchTitle = chat.title?.toLowerCase().includes(lowerQuery);
+        const matchDataset = chat.activeDatasetName?.toLowerCase().includes(lowerQuery);
+        const matchLastGenTitle = chat.messages?.some(m => m.generatedTitle?.toLowerCase().includes(lowerQuery));
+        return matchTitle || matchDataset || matchLastGenTitle;
+      });
+    }
+    return sortConversations(list);
+  }, [conversations, activeSearch]);
+  
+  const groups = useMemo(() => groupConversations(filteredConversations), [filteredConversations]);
 
   const COLLAPSED_W = 0;
   const EXPANDED_W = 260;
 
-  const sorted = sortConversations(conversations);
-  const groups = useMemo(() => groupConversations(sorted), [sorted]);
-
-  // On desktop: sidebar is truly collapsed (width → 0) when collapsed=true
-  // On mobile: sidebar uses overlay/translate pattern, not width animation
   const sidebarClasses = [
     'v2-sidebar',
     collapsed ? 'v2-sidebar--collapsed' : '',
@@ -452,24 +414,18 @@ export default function SidebarV2({
     .filter(Boolean)
     .join(' ');
 
-  // Desktop: sidebar width animates to 0 when collapsed
-  // Mobile: width stays at EXPANDED_W; translate handles show/hide
   const sidebarWidth = isDesktop
     ? collapsed ? COLLAPSED_W : EXPANDED_W
     : EXPANDED_W;
 
   return (
     <>
-      {/* ── MOBILE: Sidebar Overlay ── */}
-
-      {/* ── SIDEBAR PANEL ── */}
       <motion.aside
         className={sidebarClasses}
         animate={isDesktop ? { width: sidebarWidth } : {}}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         style={{ overflow: 'hidden', flexShrink: 0 }}
       >
-        {/* Inner content — fades out on desktop collapse, always visible on mobile */}
         <motion.div
           className="v2-sidebar-inner"
           animate={
@@ -480,12 +436,12 @@ export default function SidebarV2({
           transition={{ duration: collapsed ? 0.1 : 0.18, ease: 'easeOut' }}
           style={{ width: EXPANDED_W, height: '100%', display: 'flex', flexDirection: 'column' }}
         >
-          {/* ── Header: Logo + Brand name ── */}
           <div className="v2-sidebar-header">
             <div className="v2-sidebar-logo">
-              {/* Desktop: Logo is interactive toggle */}
               {isDesktop ? (
-                <LogoToggle collapsed={false} onToggle={onToggleCollapse} />
+                <Tooltip label={collapsed ? "Expand" : "Collapse"} side="right">
+                    <LogoToggle collapsed={collapsed} onToggle={onToggleCollapse} />
+                </Tooltip>
               ) : (
                 <div className="v2-sidebar-logo-mobile" style={{ display: 'flex' }}>
                   <PlexisLogo width={18} height={18} />
@@ -502,18 +458,18 @@ export default function SidebarV2({
             </div>
           </div>
 
-          {/* ── New Chat ── */}
-          <motion.button
-            className="v2-new-chat-btn"
-            onClick={onNewChat}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Plus size={15} />
-            <span>New Chat</span>
-          </motion.button>
+          <Tooltip label="New Chat" shortcut="Ctrl+N" side="right" disabled={!collapsed}>
+            <motion.button
+              className="v2-new-chat-btn"
+              onClick={onNewChat}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Plus size={15} />
+              <span>New Chat</span>
+            </motion.button>
+          </Tooltip>
 
-          {/* ── Search ── */}
           <div className="v2-sidebar-search">
             <Search size={14} />
             <input
@@ -523,17 +479,18 @@ export default function SidebarV2({
               onChange={(e) => onSearchChange(e.target.value)}
             />
             {searchQuery && (
-              <button
-                className="v2-search-clear"
-                onClick={() => onSearchChange('')}
-                aria-label="Clear search"
-              >
-                ×
-              </button>
+              <Tooltip label="Clear search">
+                <button
+                  className="v2-search-clear"
+                  onClick={() => onSearchChange('')}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              </Tooltip>
             )}
           </div>
 
-          {/* ── Virtualized Chat List ── */}
           <VirtualList
             groups={groups}
             activeId={activeId}
@@ -541,12 +498,13 @@ export default function SidebarV2({
             onRename={onRenameChat}
             onDelete={onDeleteChat}
             onTogglePin={onTogglePin}
+            activeSearch={activeSearch}
           />
 
-          {/* ── Bottom / Profile ── */}
           <div className="v2-sidebar-bottom">
             <div className="v2-sidebar-profile">
               <button
+                type="button"
                 className="v2-profile-btn"
                 onClick={() => setProfileOpen((v) => !v)}
               >

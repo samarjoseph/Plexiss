@@ -14,6 +14,8 @@ import {
   togglePinConversation,
 } from '../utils/conversationStorage';
 import { extractResponseText, extractMetadata } from '../utils/responseHelpers';
+import { generateChatTitle } from '../components/dashboard/SidebarV2';
+import Tooltip from '../components/ui/Tooltip';
 import SidebarV2 from '../components/dashboard/SidebarV2';
 import ChatAreaV2 from '../components/dashboard/ChatAreaV2';
 import AnalyticsPanelV2 from '../components/dashboard/AnalyticsPanelV2';
@@ -279,15 +281,16 @@ export default function Dashboard() {
       />
 
       {/* Floating Analytics Toggle */}
-      <motion.button
-        className={`v2-analytics-float-btn ${!analyticsCollapsed ? 'active' : ''}`}
-        onClick={() => setAnalyticsCollapsed(!analyticsCollapsed)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        title={analyticsCollapsed ? 'Open Analytics' : 'Close Analytics'}
-      >
-        <BarChart3 size={18} />
-      </motion.button>
+      <Tooltip label={analyticsCollapsed ? 'Open Analytics' : 'Close Analytics'} side="left">
+        <motion.button
+          className={`v2-analytics-float-btn ${!analyticsCollapsed ? 'active' : ''}`}
+          onClick={() => setAnalyticsCollapsed(!analyticsCollapsed)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <BarChart3 size={18} />
+        </motion.button>
+      </Tooltip>
 
       <AnimatePresence>
         {!analyticsCollapsed && (

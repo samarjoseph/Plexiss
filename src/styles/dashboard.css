@@ -1628,8 +1628,8 @@
 /* Analytics floating toggle */
 .v2-analytics-float-btn {
   position: fixed;
-  top: 14px;
-  right: 18px;
+  top: 68px;
+  right: 24px;
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -2228,11 +2228,37 @@
   }
 
   .v2-welcome-cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .v2-welcome-card {
+    padding: 10px;
+    gap: 6px;
+    border-radius: 10px;
+  }
+
+  .v2-welcome-card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+
+  .v2-welcome-card-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .v2-welcome-card-title {
+    font-size: 0.75rem;
+  }
+
+  .v2-welcome-card-desc {
+    display: none; /* Hide description on mobile to save space */
   }
 
   .v2-welcome {
-    margin-top: 40px;
+    margin-top: 24px;
   }
 
   .v2-settings-modal {
@@ -2279,9 +2305,7 @@
   }
 
   .v2-analytics-float-btn {
-    width: 34px;
-    height: 34px;
-    top: 8px;
-    right: 8px;
+    top: 68px;
+    right: 16px;
   }
 }

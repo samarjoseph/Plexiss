@@ -41,6 +41,7 @@ import {
   Columns,
 } from 'lucide-react';
 import { exportChartAsPNG, exportChartDataAsCSV } from '../../utils/chartExport';
+import UITooltip from '../ui/Tooltip';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement,
@@ -233,23 +234,25 @@ export default function AnalyticsPanelV2({
     >
       <div className="v2-analytics-header">
         <h3>Analytics</h3>
-        <div className="v2-analytics-header-actions" style={{ gap: '6px' }}>
-          <button
-            type="button"
-            className="v2-icon-btn v2-tip"
-            data-tip="Fullscreen"
-            onClick={() => setFullscreen(!fullscreen)}
-          >
-            {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-          </button>
-          <button
-            type="button"
-            className="v2-icon-btn v2-tip"
-            data-tip="Close"
-            onClick={onToggleCollapse}
-          >
-            <PanelRightClose size={15} />
-          </button>
+        <div className="v2-analytics-header-actions" style={{ gap: '14px' }}>
+          <UITooltip label="Fullscreen" side="bottom">
+            <button
+              type="button"
+              className="v2-icon-btn"
+              onClick={() => setFullscreen(!fullscreen)}
+            >
+              {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            </button>
+          </UITooltip>
+          <UITooltip label="Close" side="bottom">
+            <button
+              type="button"
+              className="v2-icon-btn"
+              onClick={onToggleCollapse}
+            >
+              <PanelRightClose size={15} />
+            </button>
+          </UITooltip>
         </div>
       </div>
 

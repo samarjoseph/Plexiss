@@ -8,6 +8,7 @@ import MessageBubbleV2 from './MessageBubbleV2';
 import ThinkingV2 from './ThinkingV2';
 import { useAuth } from '../../context/AuthContext';
 import { LogoToggle } from './SidebarV2';
+import Tooltip from '../ui/Tooltip';
 
 /* ─────────────────────────────────────────────────────────────────
    useIsDesktop: true when viewport >= 1024px
@@ -227,16 +228,16 @@ export default function ChatAreaV2({
           )}
 
           <div className="v2-input-row">
-            <button
-              type="button"
-              className="v2-attach-btn v2-tip"
-              data-tip="Upload Dataset
-Ctrl+U"
-              onClick={() => fileRef.current?.click()}
-              disabled={isLoading}
-            >
-              <Plus size={18} />
-            </button>
+            <Tooltip label="Upload Dataset" shortcut="Ctrl+U" side="top">
+              <button
+                type="button"
+                className="v2-attach-btn"
+                onClick={() => fileRef.current?.click()}
+                disabled={isLoading}
+              >
+                <Plus size={18} />
+              </button>
+            </Tooltip>
 
             <input
               ref={fileRef}
@@ -268,18 +269,18 @@ Ctrl+U"
               />
             )}
 
-            <motion.button
-              type="button"
-              className="v2-send-btn v2-tip"
-              data-tip="Send Message
-⏎ Enter"
-              disabled={(!inputText.trim() && !stagedFile) || isLoading}
-              onClick={onSend}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ArrowUp size={16} />
-            </motion.button>
+            <Tooltip label="Send Message" shortcut="⏎ Enter" side="top">
+              <motion.button
+                type="button"
+                className="v2-send-btn"
+                disabled={(!inputText.trim() && !stagedFile) || isLoading}
+                onClick={onSend}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ArrowUp size={16} />
+              </motion.button>
+            </Tooltip>
           </div>
         </div>
       </div>
