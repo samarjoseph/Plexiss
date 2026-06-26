@@ -474,6 +474,7 @@ export default function SidebarV2({
           <div className="v2-sidebar-search">
             <Search size={14} />
             <input
+              id="chat-search-input"
               type="text"
               placeholder="Search chats…"
               value={searchQuery}

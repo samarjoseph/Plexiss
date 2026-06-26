@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, ArrowUp, X, FileSpreadsheet, Sparkles,
-  Search, LineChart, MessageSquare, Menu,
+  Search, LineChart, MessageSquare, Menu, BarChart3,
 } from 'lucide-react';
 import MessageBubbleV2 from './MessageBubbleV2';
 import ThinkingV2 from './ThinkingV2';
@@ -37,8 +37,9 @@ export default function ChatAreaV2({
   isLoading,
   activeDatasetName,
   onOpenSidebar,
-  sidebarCollapsed,
   onToggleSidebar,
+  analyticsCollapsed,
+  onToggleAnalytics,
 }) {
   const { user } = useAuth();
   const isDesktop = useIsDesktop();
@@ -103,6 +104,30 @@ export default function ChatAreaV2({
 
         <div className={`v2-chat-header-brand ${!isDesktop ? 'v2-chat-header-brand--mobile' : ''}`}>
           Plexis
+        </div>
+
+        <div className="v2-chat-header-actions" style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+          <AnimatePresence>
+            {analyticsCollapsed && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Tooltip label="Open Analytics" side="bottom">
+                  <button
+                    type="button"
+                    className="v2-icon-btn"
+                    onClick={onToggleAnalytics}
+                    aria-label="Open Analytics"
+                  >
+                    <BarChart3 size={18} />
+                  </button>
+                </Tooltip>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
@@ -240,6 +265,7 @@ export default function ChatAreaV2({
             </Tooltip>
 
             <input
+              id="dataset-upload-input"
               ref={fileRef}
               type="file"
               accept=".csv"

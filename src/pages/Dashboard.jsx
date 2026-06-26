@@ -215,8 +215,19 @@ export default function Dashboard() {
 
   // ── Keyboard Shortcuts ─────────────────────────────────────
   useKeyboardShortcuts([
-    { key: 'k', mod: true, action: handleNewChat },
-    { key: 'b', mod: true, action: () => setSidebarCollapsed((v) => !v) },
+    { key: 'o', mod: true, shift: true, action: handleNewChat },
+    { key: 'k', mod: true, action: (e) => {
+        e.preventDefault();
+        document.getElementById('chat-search-input')?.focus();
+    }},
+    { key: 'u', mod: true, action: (e) => {
+        e.preventDefault();
+        document.getElementById('dataset-upload-input')?.click();
+    }},
+    { key: 'b', mod: true, action: (e) => {
+        e.preventDefault();
+        setSidebarCollapsed((v) => !v);
+    }},
   ]);
 
   // ── Render ─────────────────────────────────────────────────
@@ -260,11 +271,6 @@ export default function Dashboard() {
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
-      {/*
-        ChatAreaV2:
-        - Desktop: no hamburger shown (logo in sidebar handles toggle)
-        - Mobile: hamburger in header triggers onOpenSidebar
-      */}
       <ChatAreaV2
         messages={activeConversation?.messages || []}
         inputText={inputText}
@@ -278,19 +284,9 @@ export default function Dashboard() {
         onOpenSidebar={() => setSidebarMobileOpen(true)}
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+        analyticsCollapsed={analyticsCollapsed}
+        onToggleAnalytics={() => setAnalyticsCollapsed((v) => !v)}
       />
-
-      {/* Floating Analytics Toggle */}
-      <Tooltip label={analyticsCollapsed ? 'Open Analytics' : 'Close Analytics'} side="left">
-        <motion.button
-          className={`v2-analytics-float-btn ${!analyticsCollapsed ? 'active' : ''}`}
-          onClick={() => setAnalyticsCollapsed(!analyticsCollapsed)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <BarChart3 size={18} />
-        </motion.button>
-      </Tooltip>
 
       <AnimatePresence>
         {!analyticsCollapsed && (

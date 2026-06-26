@@ -227,9 +227,9 @@ export default function AnalyticsPanelV2({
   return (
     <motion.aside
       className={`v2-analytics ${fullscreen ? 'v2-analytics-fullscreen' : ''}`}
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0, width: fullscreen ? '100vw' : 360 }}
-      exit={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: '100%' }}
+      animate={{ opacity: 1, x: 0, width: fullscreen ? '100vw' : undefined }}
+      exit={{ opacity: 0, x: '100%' }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="v2-analytics-header">
