@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Database, BarChart3, MessageSquare, Globe, Brain, Shield } from 'lucide-react';
 import GoogleSignInButton from '../components/oauth/GoogleSignInButton';
@@ -17,14 +17,21 @@ const fadeUp = {
 export default function LandingPage() {
   return (
     <div className="landing">
-      {/* Background Orbs & Gradients */}
+      {/* Background */}
       <div className="landing-bg">
         <div className="bg-grid"></div>
       </div>
 
+      {/* Navbar */}
       <nav className="landing-nav-top">
         <div className="nav-brand">
-          <PlexisLogo width={28} height={28} />
+          {/*
+            Landing page: PlexisLogo is purely decorative — no sidebar to toggle.
+            Use the same visual as the sidebar logo button for brand consistency.
+          */}
+          <div className="nav-brand-logo-wrap" aria-hidden="true">
+            <PlexisLogo width={28} height={28} />
+          </div>
           <span className="nav-brand-text">Plexis</span>
         </div>
         <div className="nav-actions">
@@ -32,6 +39,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Hero */}
       <section className="landing-hero">
         <motion.div
           className="hero-badge glass-panel"
@@ -61,11 +69,12 @@ export default function LandingPage() {
           animate="visible"
           custom={2}
         >
-          Upload datasets, analyze trends, generate insights, visualize patterns, and research the web — all from one intelligent workspace.
+          Upload datasets, analyze trends, generate insights, visualize patterns,
+          and research the web — all from one intelligent workspace.
         </motion.p>
-
       </section>
 
+      {/* Features */}
       <section id="features" className="landing-section">
         <motion.div
           className="section-header"
@@ -81,12 +90,12 @@ export default function LandingPage() {
 
         <div className="features-grid">
           {[
-            { icon: Database, title: 'AI Data Analysis', desc: 'Instant profiling, correlations, and structural insights powered by AI.' },
-            { icon: Shield, title: 'Dataset Insights', desc: 'Deep-dive analytical metadata and automated narrative generation.' },
-            { icon: Globe, title: 'Web Research', desc: 'Blend live web data with local dataset intelligence effortlessly.' },
-            { icon: BarChart3, title: 'Advanced Charts', desc: 'Generate complex charts and data visualizations from natural language.' },
-            { icon: Brain, title: 'Conversation Memory', desc: 'Persistent session context and user preferences for seamless workflows.' },
-            { icon: MessageSquare, title: 'Multi-Chat Workspace', desc: 'Context-aware follow-ups with isolated chat memories and sessions.' },
+            { icon: Database,      title: 'AI Data Analysis',       desc: 'Instant profiling, correlations, and structural insights powered by AI.' },
+            { icon: Shield,        title: 'Dataset Insights',        desc: 'Deep-dive analytical metadata and automated narrative generation.' },
+            { icon: Globe,         title: 'Web Research',            desc: 'Blend live web data with local dataset intelligence effortlessly.' },
+            { icon: BarChart3,     title: 'Advanced Charts',         desc: 'Generate complex charts and data visualizations from natural language.' },
+            { icon: Brain,         title: 'Conversation Memory',     desc: 'Persistent session context and user preferences for seamless workflows.' },
+            { icon: MessageSquare, title: 'Multi-Chat Workspace',    desc: 'Context-aware follow-ups with isolated chat memories and sessions.' },
           ].map((feature, i) => (
             <motion.div
               key={feature.title}
@@ -107,6 +116,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="landing-cta-section">
         <motion.div
           className="cta-card glass-panel"
@@ -120,13 +130,16 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* Footer */}
       <footer className="landing-footer glass-panel">
         <div className="footer-content">
           <div className="footer-brand">
             <PlexisLogo width={20} height={20} />
             <span>Plexis</span>
           </div>
-          <p className="footer-text">&copy; {new Date().getFullYear()} Plexis AI. All rights reserved.</p>
+          <p className="footer-text">
+            &copy; {new Date().getFullYear()} Plexis AI. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
