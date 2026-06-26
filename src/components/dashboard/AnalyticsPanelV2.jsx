@@ -46,7 +46,7 @@ import UITooltip from '../ui/Tooltip';
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement,
   ArcElement, RadialLinearScale, MatrixController, MatrixElement,
-  TreemapController, TreemapElement, Tooltip, Legend, Filler
+  Tooltip, Legend, Filler, TreemapController, TreemapElement
 );
 
 const CHART_TYPES = [

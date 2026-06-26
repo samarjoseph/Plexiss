@@ -37,6 +37,7 @@ export default function ChatAreaV2({
   isLoading,
   activeDatasetName,
   onOpenSidebar,
+  sidebarCollapsed,
   onToggleSidebar,
   analyticsCollapsed,
   onToggleAnalytics,
