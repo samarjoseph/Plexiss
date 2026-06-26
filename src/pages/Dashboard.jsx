@@ -106,7 +106,6 @@ export default function Dashboard() {
 
     if (!currentConv) {
       currentConv = createConversation();
-      // Remove the default welcome message for a cleaner V2 experience
       currentConv.messages = [];
       targetId = currentConv.id;
       setConversations((prev) => [currentConv, ...prev]);
@@ -132,11 +131,10 @@ export default function Dashboard() {
 
       let nextChartData = currentConv.chartData;
       let nextDatasetName = currentConv.activeDatasetName;
-
       let nextDatasetStats = currentConv.datasetStats;
+
       if (runtimeFile) {
         nextDatasetName = runtimeFile.name;
-        // Extract stats from API response if available
         if (apiResult?.dataset_info) {
           nextDatasetStats = {
             rows: apiResult.dataset_info.rows,
@@ -150,13 +148,15 @@ export default function Dashboard() {
       if (apiResult?.chart_data) {
         nextChartData = {
           labels: apiResult.chart_data.labels,
-          datasets: [{
-            label: apiResult.chart_data.metric_label || 'Dataset Trace',
-            data: apiResult.chart_data.values,
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.6)',
-            borderWidth: 2,
-          }],
+          datasets: [
+            {
+              label: apiResult.chart_data.metric_label || 'Dataset Trace',
+              data: apiResult.chart_data.values,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.6)',
+              borderWidth: 2,
+            },
+          ],
         };
       }
 
@@ -173,10 +173,9 @@ export default function Dashboard() {
           : null,
       };
 
-      // Generate smart title from conversation
+      // Generate smart title
       let title = currentConv.title;
       if (title === 'New Chat' && runtimeText.trim()) {
-        // Quick title generation: extract key words
         try {
           const titleResult = await PlexisAPI.askQuestion(
             `Generate a concise conversation title in maximum 5 words for this message. Return ONLY the title, nothing else: "${runtimeText.trim().slice(0, 200)}"`
@@ -185,12 +184,10 @@ export default function Dashboard() {
           if (aiTitle && aiTitle.length > 0 && aiTitle.length < 50) {
             title = aiTitle;
           } else {
-            // Fallback: use first 5 words
             title = runtimeText.trim().split(' ').slice(0, 5).join(' ');
             if (title.length > 35) title = title.slice(0, 32) + '...';
           }
         } catch {
-          // Fallback: use first 5 words
           title = runtimeText.trim().split(' ').slice(0, 5).join(' ');
           if (title.length > 35) title = title.slice(0, 32) + '...';
         }
@@ -228,16 +225,21 @@ export default function Dashboard() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      {/* Mobile sidebar overlay */}
+      {/* Mobile sidebar overlay — tap to close */}
       <div
         className={`v2-sidebar-overlay ${sidebarMobileOpen ? 'visible' : ''}`}
         onClick={() => setSidebarMobileOpen(false)}
       />
 
+      {/*
+        SidebarV2:
+        - Desktop: logo toggle always visible; sidebar animates width
+        - Mobile: overlay sidebar; hamburger in ChatAreaV2 triggers open
+      */}
       <SidebarV2
         collapsed={sidebarCollapsed}
         mobileOpen={sidebarMobileOpen}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
         conversations={conversations}
         activeId={activeId}
         searchQuery={searchQuery}
@@ -256,6 +258,11 @@ export default function Dashboard() {
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
+      {/*
+        ChatAreaV2:
+        - Desktop: no hamburger shown (logo in sidebar handles toggle)
+        - Mobile: hamburger in header triggers onOpenSidebar
+      */}
       <ChatAreaV2
         messages={activeConversation?.messages || []}
         inputText={inputText}
@@ -314,11 +321,15 @@ export default function Dashboard() {
                 <>
                   <WifiOff size={22} className="v2-toast-icon" />
                   <span className="v2-toast-title">No connection</span>
-                  <span className="v2-toast-desc">Please check your internet connection and try again.</span>
+                  <span className="v2-toast-desc">
+                    Please check your internet connection and try again.
+                  </span>
                 </>
               ) : (
                 <>
-                  {toast.type === 'error' && <AlertCircle size={16} className="v2-toast-icon" />}
+                  {toast.type === 'error' && (
+                    <AlertCircle size={16} className="v2-toast-icon" />
+                  )}
                   <span>{toast.message}</span>
                 </>
               )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Database, BarChart3, MessageSquare, Globe, Brain, Shield } from 'lucide-react';
+import { Database, BarChart3, MessageSquare, Globe, Brain, Shield, Sparkles } from 'lucide-react';
 import GoogleSignInButton from '../components/oauth/GoogleSignInButton';
 import PlexisLogo from '../components/brand/PlexisLogo';
 import './LandingPage.css';
@@ -29,8 +29,16 @@ export default function LandingPage() {
             Landing page: PlexisLogo is purely decorative — no sidebar to toggle.
             Use the same visual as the sidebar logo button for brand consistency.
           */}
-          <div className="nav-brand-logo-wrap" aria-hidden="true">
-            <PlexisLogo width={28} height={28} />
+          <div className="nav-brand-logo-wrap" aria-hidden="true" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '34px',
+            height: '34px',
+            borderRadius: '8px',
+            color: 'var(--text, white)'
+          }}>
+            <Sparkles size={18} />
           </div>
           <span className="nav-brand-text">Plexis</span>
         </div>

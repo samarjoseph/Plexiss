@@ -223,6 +223,7 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
+  transform: translateY(-2px); /* perfectly align with Sparkles logo */
 }
 
 /* On mobile the brand name is centered since hamburger takes left slot */
