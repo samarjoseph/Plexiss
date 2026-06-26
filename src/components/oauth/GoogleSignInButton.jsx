@@ -12,8 +12,10 @@ export default function GoogleSignInButton({ variant = 'primary', label = 'Conti
     }
     
     // Construct the manual OAuth URL for a same-tab redirect.
-    // We use response_type=id_token so Google returns the JWT directly in the URL hash.
+    // We explicitly use window.location.origin (which does not include /dashboard or current path)
+    // and append /auth/callback to match the exact route expected by App.jsx.
     const redirectUri = window.location.origin + '/auth/callback';
+    
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
@@ -22,6 +24,7 @@ export default function GoogleSignInButton({ variant = 'primary', label = 'Conti
       nonce: Math.random().toString(36).substring(2),
       prompt: 'select_account'
     });
+
     
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };
