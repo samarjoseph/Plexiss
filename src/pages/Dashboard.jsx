@@ -216,6 +216,10 @@ export default function Dashboard() {
   // ── Keyboard Shortcuts ─────────────────────────────────────
   useKeyboardShortcuts([
     { key: 'o', mod: true, shift: true, action: handleNewChat },
+    { key: 'a', mod: true, shift: true, action: (e) => {
+        e.preventDefault();
+        setAnalyticsCollapsed((v) => !v);
+    }},
     { key: 'k', mod: true, action: (e) => {
         e.preventDefault();
         document.getElementById('chat-search-input')?.focus();

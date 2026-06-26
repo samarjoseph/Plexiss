@@ -116,10 +116,10 @@ export default function ChatAreaV2({
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
               >
-                <Tooltip label="Open Analytics" side="bottom">
+                <Tooltip label="Open Analytics" shortcut="Ctrl+Shift+A" side="bottom">
                   <button
                     type="button"
-                    className="v2-icon-btn"
+                    className="v2-analytics-btn"
                     onClick={onToggleAnalytics}
                     aria-label="Open Analytics"
                   >
