@@ -20,8 +20,6 @@ import { sortConversations } from '../../utils/conversationStorage';
 
 /* ─────────────────────────────────────────────────────────────────
    AI TITLE GENERATION
-   Call once after first user message; store in chat.title permanently.
-   Returns a 3-5 word slug, e.g. "Sales Dataset Analysis"
    ───────────────────────────────────────────────────────────────── */
 export async function generateChatTitle(firstUserMessage) {
   try {
@@ -46,7 +44,6 @@ Message: "${firstUserMessage.slice(0, 300)}"`,
     if (!res.ok) return null;
     const data = await res.json();
     const text = data?.content?.[0]?.text?.trim() ?? '';
-    // Strip possible markdown fences
     const clean = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
     return parsed?.chat_title ?? null;
@@ -81,9 +78,26 @@ function groupConversations(conversations) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   CUSTOM HOOK: useIsDesktop
+   Desktop = width >= 1024px. Recalculates on resize.
+   ───────────────────────────────────────────────────────────────── */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isDesktop;
+}
+
+/* ─────────────────────────────────────────────────────────────────
    TOOLTIP
    ───────────────────────────────────────────────────────────────── */
-function Tip({ children, label, shortcut, side = 'right', className = '', disabled = false, ...rest }) {
+function Tip({ children, label, shortcut, side = 'right', disabled = false }) {
   const [show, setShow] = useState(false);
 
   const pos =
@@ -95,11 +109,10 @@ function Tip({ children, label, shortcut, side = 'right', className = '', disabl
 
   return (
     <div
-      className={`v2-tip-wrap ${className}`}
+      className="v2-tip-wrap"
       onMouseEnter={() => !disabled && setShow(true)}
       onMouseLeave={() => setShow(false)}
       style={{ position: 'relative', display: 'inline-flex' }}
-      {...rest}
     >
       {children}
       <AnimatePresence>
@@ -110,7 +123,7 @@ function Tip({ children, label, shortcut, side = 'right', className = '', disabl
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.88 }}
             transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            style={{ ...pos, position: 'absolute' }}
+            style={{ ...pos, position: 'absolute', zIndex: 200, whiteSpace: 'nowrap' }}
           >
             <span className="v2-tooltip-label">{label}</span>
             {shortcut && <span className="v2-tooltip-shortcut">{shortcut}</span>}
@@ -122,42 +135,41 @@ function Tip({ children, label, shortcut, side = 'right', className = '', disabl
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   LOGO TOGGLE BUTTON
-   Renders the Plexis logo; on hover it morphs into a sidebar toggle.
-   Works in both expanded and collapsed states.
+   LOGO TOGGLE BUTTON (Desktop only)
+   - Shows Sparkles logo by default
+   - On hover: morphs into PanelLeft (sidebar) icon
+   - Click: toggles sidebar collapsed state
+   - Tooltip shows action + shortcut
    ───────────────────────────────────────────────────────────────── */
-function LogoToggle({ collapsed, onToggle, showLabel }) {
+function LogoToggle({ collapsed, onToggle }) {
   const [hovered, setHovered] = useState(false);
+  const label = collapsed ? 'Open Sidebar' : 'Close Sidebar';
+  const shortcut = 'Ctrl+B';
 
   return (
-    <Tip
-      label={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-      shortcut="Ctrl+B"
-      side={collapsed ? 'right' : 'top'}
-      disabled={hovered} /* tooltip hidden while hover-icon is shown */
-    >
+    <Tip label={label} shortcut={shortcut} side={collapsed ? 'right' : 'right'}>
       <motion.button
         className="v2-logo-toggle"
         onClick={onToggle}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         whileTap={{ scale: 0.92 }}
-        aria-label={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        aria-label={label}
       >
-        {/* Sparkles logo */}
+        {/* Sparkles logo — default state */}
         <motion.span
           className="v2-logo-icon"
-          animate={{ opacity: hovered ? 0 : 1, scale: hovered ? 0.6 : 1 }}
+          animate={{ opacity: hovered ? 0 : 1, scale: hovered ? 0.55 : 1 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           style={{ position: 'absolute' }}
         >
           <Sparkles size={18} />
         </motion.span>
 
-        {/* Sidebar toggle arrow — appears on hover */}
+        {/* PanelLeft — appears on hover */}
         <motion.span
           className="v2-logo-arrow"
-          animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.6 }}
+          animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.55 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           style={{ position: 'absolute' }}
         >
@@ -182,7 +194,6 @@ function ChatItem({ chat, isActive, onSelect, onRename, onDelete, onTogglePin })
   const [renameVal, setRenameVal] = useState(chat.title);
   const menuRef = useRef(null);
 
-  // Close menu on outside click
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e) => {
@@ -223,9 +234,7 @@ function ChatItem({ chat, isActive, onSelect, onRename, onDelete, onTogglePin })
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="v2-chat-item-title">
-            {chat.title || 'New Chat'}
-          </span>
+          <span className="v2-chat-item-title">{chat.title || 'New Chat'}</span>
         )}
         <span className="v2-chat-item-time">{relativeTime(chat.updatedAt)}</span>
       </div>
@@ -289,12 +298,10 @@ function ChatItem({ chat, isActive, onSelect, onRename, onDelete, onTogglePin })
 
 /* ─────────────────────────────────────────────────────────────────
    VIRTUALIZED CHAT LIST
-   Renders only visible rows + a small overscan buffer.
-   Handles 10 → 500 chats with zero jank.
    ───────────────────────────────────────────────────────────────── */
-const ITEM_H = 54;        // px per chat row (approximate)
-const SECTION_H = 34;     // px for section header
-const OVERSCAN = 8;       // extra rows rendered above/below viewport
+const ITEM_H = 54;
+const SECTION_H = 34;
+const OVERSCAN = 8;
 
 function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onTogglePin }) {
   const containerRef = useRef(null);
@@ -309,7 +316,6 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
     return () => ro.disconnect();
   }, []);
 
-  // Build a flat list of items with pre-computed y offsets
   const { items, totalH } = useMemo(() => {
     const flat = [];
     let y = 0;
@@ -322,7 +328,7 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
         flat.push({ type: 'chat', chat: c, y, id: c.id });
         y += ITEM_H;
       }
-      y += 8; // section gap
+      y += 8;
     };
 
     addSection('Pinned', <Pin size={11} />, groups.pinned);
@@ -339,7 +345,6 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
 
   const handleScroll = useCallback((e) => setScrollTop(e.currentTarget.scrollTop), []);
 
-  // Visible window
   const topBound = Math.max(0, scrollTop - OVERSCAN * ITEM_H);
   const botBound = scrollTop + viewportH + OVERSCAN * ITEM_H;
   const visible = items.filter((item) => item.y + ITEM_H > topBound && item.y < botBound);
@@ -354,7 +359,11 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
         {visible.map((item) => {
           if (item.type === 'empty') {
             return (
-              <div key="empty" className="v2-sidebar-empty" style={{ position: 'absolute', top: item.y, left: 0, right: 0 }}>
+              <div
+                key="empty"
+                className="v2-sidebar-empty"
+                style={{ position: 'absolute', top: item.y, left: 0, right: 0 }}
+              >
                 No conversations yet
               </div>
             );
@@ -393,6 +402,18 @@ function VirtualList({ groups, activeId, onSelect, onRename, onDelete, onToggleP
 
 /* ─────────────────────────────────────────────────────────────────
    SIDEBARV2
+   
+   Desktop (>= 1024px):
+     - Plexis logo IS the sidebar toggle (always visible)
+     - When open: logo sits inside sidebar header
+     - When collapsed: logo floats outside at fixed top-left position
+     - Hover: logo morphs into PanelLeft icon
+     - Click: opens/closes sidebar
+   
+   Mobile (< 1024px):
+     - Logo always lives inside the sidebar (mobile overlay)
+     - Hamburger button in ChatAreaV2 header controls open/close
+     - No hover transformation, no logo floating
    ───────────────────────────────────────────────────────────────── */
 export default function SidebarV2({
   collapsed,
@@ -410,195 +431,211 @@ export default function SidebarV2({
   onOpenSettings,
 }) {
   const { user, logout } = useAuth();
+  const isDesktop = useIsDesktop();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const COLLAPSED_W = 0;   // fully hidden — no leftover strip
+  const COLLAPSED_W = 0;
   const EXPANDED_W = 260;
 
   const sorted = sortConversations(conversations);
   const groups = useMemo(() => groupConversations(sorted), [sorted]);
 
+  // On desktop: sidebar is truly collapsed (width → 0) when collapsed=true
+  // On mobile: sidebar uses overlay/translate pattern, not width animation
   const sidebarClasses = [
     'v2-sidebar',
     collapsed ? 'v2-sidebar--collapsed' : '',
     mobileOpen ? 'mobile-open' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  // Desktop: sidebar width animates to 0 when collapsed
+  // Mobile: width stays at EXPANDED_W; translate handles show/hide
+  const sidebarWidth = isDesktop
+    ? collapsed ? COLLAPSED_W : EXPANDED_W
+    : EXPANDED_W;
 
   return (
-    <motion.aside
-      className={sidebarClasses}
-      animate={{ width: collapsed && !mobileOpen ? COLLAPSED_W : EXPANDED_W }}
-      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      style={{ overflow: 'hidden', flexShrink: 0 }}
-    >
-      {/* Inner wrapper keeps content from spilling during collapse animation */}
-      <motion.div
-        className="v2-sidebar-inner"
-        animate={{ opacity: collapsed && !mobileOpen ? 0 : 1 }}
-        transition={{ duration: collapsed ? 0.1 : 0.18, ease: 'easeOut' }}
-        style={{ width: EXPANDED_W, height: '100%', display: 'flex', flexDirection: 'column' }}
-      >
-        {/* ── Header ── */}
-        <div className="v2-sidebar-header">
-          <div className="v2-sidebar-logo">
-            <LogoToggle collapsed={false} onToggle={onToggleCollapse} />
-            <motion.span
-              className="v2-sidebar-logo-text"
-              initial={{ opacity: 0, x: -6 }}
+    <>
+      {/* ── DESKTOP: Floating logo when sidebar is collapsed ── */}
+      {isDesktop && (
+        <AnimatePresence>
+          {collapsed && (
+            <motion.div
+              className="v2-sidebar-floating-logo"
+              initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2, delay: 0.05 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
-              Plexis
-            </motion.span>
-          </div>
-        </div>
-
-        {/* ── New Chat ── */}
-        <motion.button
-          className="v2-new-chat-btn"
-          onClick={onNewChat}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <Plus size={15} />
-          <span>New Chat</span>
-        </motion.button>
-
-        {/* ── Search ── */}
-        <div className="v2-sidebar-search">
-          <Search size={14} />
-          <input
-            type="text"
-            placeholder="Search chats…"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              className="v2-search-clear"
-              onClick={() => onSearchChange('')}
-              aria-label="Clear search"
-            >
-              ×
-            </button>
+              <LogoToggle collapsed={true} onToggle={onToggleCollapse} />
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
+      )}
 
-        {/* ── Virtualized Chat List ── */}
-        <VirtualList
-          groups={groups}
-          activeId={activeId}
-          onSelect={onSelectChat}
-          onRename={onRenameChat}
-          onDelete={onDeleteChat}
-          onTogglePin={onTogglePin}
-        />
-
-        {/* ── Bottom / Profile ── */}
-        <div className="v2-sidebar-bottom">
-          <div className="v2-sidebar-profile">
-            <button
-              className="v2-profile-btn"
-              onClick={() => setProfileOpen((v) => !v)}
-            >
-              {user?.avatar ? (
-                <img
-                  className="v2-profile-avatar"
-                  src={user.avatar}
-                  alt={user.name}
-                  referrerPolicy="no-referrer"
-                />
+      {/* ── SIDEBAR PANEL ── */}
+      <motion.aside
+        className={sidebarClasses}
+        animate={isDesktop ? { width: sidebarWidth } : {}}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        style={{ overflow: 'hidden', flexShrink: 0 }}
+      >
+        {/* Inner content — fades out on desktop collapse, always visible on mobile */}
+        <motion.div
+          className="v2-sidebar-inner"
+          animate={
+            isDesktop
+              ? { opacity: collapsed ? 0 : 1, pointerEvents: collapsed ? 'none' : 'auto' }
+              : { opacity: 1, pointerEvents: 'auto' }
+          }
+          transition={{ duration: collapsed ? 0.1 : 0.18, ease: 'easeOut' }}
+          style={{ width: EXPANDED_W, height: '100%', display: 'flex', flexDirection: 'column' }}
+        >
+          {/* ── Header: Logo + Brand name ── */}
+          <div className="v2-sidebar-header">
+            <div className="v2-sidebar-logo">
+              {/* Desktop: Logo is interactive toggle */}
+              {isDesktop ? (
+                <LogoToggle collapsed={false} onToggle={onToggleCollapse} />
               ) : (
-                <div className="v2-profile-avatar-fallback">
-                  {user?.name?.charAt(0) ?? '?'}
-                </div>
+                /* Mobile: Logo is decorative only — menu btn in header controls sidebar */
+                <span className="v2-logo-toggle v2-logo-toggle--static" aria-hidden="true">
+                  <Sparkles size={18} />
+                </span>
               )}
-              <div className="v2-profile-info">
-                <span className="v2-profile-name">{user?.name}</span>
-                <span className="v2-profile-email">{user?.email}</span>
-              </div>
-            </button>
+              <motion.span
+                className="v2-sidebar-logo-text"
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, delay: 0.05 }}
+              >
+                Plexis
+              </motion.span>
+            </div>
           </div>
 
-          <AnimatePresence>
-            {profileOpen && (
-              <motion.div
-                className="v2-profile-dropdown"
-                initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+          {/* ── New Chat ── */}
+          <motion.button
+            className="v2-new-chat-btn"
+            onClick={onNewChat}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <Plus size={15} />
+            <span>New Chat</span>
+          </motion.button>
+
+          {/* ── Search ── */}
+          <div className="v2-sidebar-search">
+            <Search size={14} />
+            <input
+              type="text"
+              placeholder="Search chats…"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="v2-search-clear"
+                onClick={() => onSearchChange('')}
+                aria-label="Clear search"
               >
-                <div className="v2-profile-dropdown-header">
-                  {user?.avatar ? (
-                    <img
-                      className="v2-profile-avatar"
-                      src={user.avatar}
-                      alt={user.name}
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="v2-profile-avatar-fallback">
-                      {user?.name?.charAt(0) ?? '?'}
-                    </div>
-                  )}
-                  <div>
-                    <span className="v2-profile-name">{user?.name}</span>
-                    <span className="v2-profile-email">{user?.email}</span>
-                  </div>
-                </div>
-
-                <div className="v2-profile-dropdown-divider" />
-
-                <button
-                  onClick={() => {
-                    setProfileOpen(false);
-                    onOpenSettings();
-                  }}
-                >
-                  <Settings size={14} /> Settings
-                </button>
-                <button
-                  className="danger"
-                  onClick={() => {
-                    setProfileOpen(false);
-                    logout();
-                  }}
-                >
-                  <LogOut size={14} /> Sign out
-                </button>
-              </motion.div>
+                ×
+              </button>
             )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </motion.aside>
-  );
-}
+          </div>
 
-/* ─────────────────────────────────────────────────────────────────
-   FLOATING REOPEN BUTTON
-   Shown only when sidebar is fully collapsed on desktop.
-   No separate floating button on mobile (handled by mobile menu btn).
-   ───────────────────────────────────────────────────────────────── */
-export function SidebarReopenBtn({ collapsed, mobileOpen, onToggle }) {
-  const visible = collapsed && !mobileOpen;
+          {/* ── Virtualized Chat List ── */}
+          <VirtualList
+            groups={groups}
+            activeId={activeId}
+            onSelect={onSelectChat}
+            onRename={onRenameChat}
+            onDelete={onDeleteChat}
+            onTogglePin={onTogglePin}
+          />
 
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="v2-sidebar-reopen"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -10 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <Tip label="Expand Sidebar" shortcut="Ctrl+B" side="right">
-            <LogoToggle collapsed={true} onToggle={onToggle} />
-          </Tip>
+          {/* ── Bottom / Profile ── */}
+          <div className="v2-sidebar-bottom">
+            <div className="v2-sidebar-profile">
+              <button
+                className="v2-profile-btn"
+                onClick={() => setProfileOpen((v) => !v)}
+              >
+                {user?.avatar ? (
+                  <img
+                    className="v2-profile-avatar"
+                    src={user.avatar}
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="v2-profile-avatar-fallback">
+                    {user?.name?.charAt(0) ?? '?'}
+                  </div>
+                )}
+                <div className="v2-profile-info">
+                  <span className="v2-profile-name">{user?.name}</span>
+                  <span className="v2-profile-email">{user?.email}</span>
+                </div>
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {profileOpen && (
+                <motion.div
+                  className="v2-profile-dropdown"
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <div className="v2-profile-dropdown-header">
+                    {user?.avatar ? (
+                      <img
+                        className="v2-profile-avatar"
+                        src={user.avatar}
+                        alt={user.name}
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="v2-profile-avatar-fallback">
+                        {user?.name?.charAt(0) ?? '?'}
+                      </div>
+                    )}
+                    <div>
+                      <span className="v2-profile-name">{user?.name}</span>
+                      <span className="v2-profile-email">{user?.email}</span>
+                    </div>
+                  </div>
+
+                  <div className="v2-profile-dropdown-divider" />
+
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      onOpenSettings();
+                    }}
+                  >
+                    <Settings size={14} /> Settings
+                  </button>
+                  <button
+                    className="danger"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      logout();
+                    }}
+                  >
+                    <LogOut size={14} /> Sign out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
-      )}
-    </AnimatePresence>
+      </motion.aside>
+    </>
   );
 }

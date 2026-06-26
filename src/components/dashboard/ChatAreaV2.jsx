@@ -2,11 +2,27 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, ArrowUp, X, FileSpreadsheet, Sparkles,
-  Search, LineChart, MessageSquare,
+  Search, LineChart, MessageSquare, Menu,
 } from 'lucide-react';
 import MessageBubbleV2 from './MessageBubbleV2';
 import ThinkingV2 from './ThinkingV2';
 import { useAuth } from '../../context/AuthContext';
+
+/* ─────────────────────────────────────────────────────────────────
+   useIsDesktop: true when viewport >= 1024px
+   ───────────────────────────────────────────────────────────────── */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isDesktop;
+}
 
 export default function ChatAreaV2({
   messages,
@@ -21,6 +37,7 @@ export default function ChatAreaV2({
   onOpenSidebar,
 }) {
   const { user } = useAuth();
+  const isDesktop = useIsDesktop();
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
   const fileRef = useRef(null);
@@ -38,7 +55,7 @@ export default function ChatAreaV2({
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Auto-resize textarea — also runs on mount to fix height after refresh
+  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = '24px';
@@ -59,22 +76,29 @@ export default function ChatAreaV2({
 
   return (
     <main className="v2-chat">
-      {/* Header */}
+      {/* ── Header ── */}
       <header className="v2-chat-header">
-        <button
-          type="button"
-          className="v2-mobile-menu-btn"
-          onClick={onOpenSidebar}
-          aria-label="Open sidebar"
-        >
-          <MessageSquare size={18} />
-        </button>
-        <div className="v2-chat-header-brand">
+        {/*
+          Mobile only: hamburger button opens sidebar.
+          Desktop: hidden — the Plexis logo in sidebar handles toggle.
+        */}
+        {!isDesktop && (
+          <button
+            type="button"
+            className="v2-mobile-menu-btn"
+            onClick={onOpenSidebar}
+            aria-label="Open sidebar"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+
+        <div className={`v2-chat-header-brand ${!isDesktop ? 'v2-chat-header-brand--mobile' : ''}`}>
           Plexis
         </div>
       </header>
 
-      {/* Messages */}
+      {/* ── Messages ── */}
       <div className="v2-chat-messages">
         {showWelcome && (
           <motion.div
@@ -182,7 +206,7 @@ export default function ChatAreaV2({
         <div ref={scrollRef} />
       </div>
 
-      {/* Input */}
+      {/* ── Input ── */}
       <div className="v2-chat-input-area">
         <div className="v2-input-container">
           {stagedFile && (
