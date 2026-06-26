@@ -525,6 +525,7 @@ export default function SidebarV2({
               </Tooltip>
             )}
           </div>
+          </Tooltip>
 
           <VirtualList
             groups={groups}
