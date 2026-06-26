@@ -386,6 +386,39 @@ export default function SidebarV2({
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchLocal, setSearchLocal] = useState('');
 
+  // Resizing state
+  const [expandedW, setExpandedW] = useState(280);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Reset to default width when collapsed changes
+  useEffect(() => {
+    setExpandedW(280);
+  }, [collapsed]);
+
+  const handleDragStart = useCallback((e) => {
+    if (!isDesktop) return;
+    e.preventDefault();
+    setIsDragging(true);
+    document.body.classList.add('is-dragging');
+
+    const handleMouseMove = (eMove) => {
+      let newW = eMove.clientX;
+      if (newW < 220) newW = 220;
+      if (newW > 420) newW = 420;
+      setExpandedW(newW);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.body.classList.remove('is-dragging');
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [isDesktop]);
+
   const activeSearch = searchQuery || searchLocal;
 
   const filteredConversations = useMemo(() => {
@@ -405,7 +438,6 @@ export default function SidebarV2({
   const groups = useMemo(() => groupConversations(filteredConversations), [filteredConversations]);
 
   const COLLAPSED_W = 0;
-  const EXPANDED_W = 260;
 
   const sidebarClasses = [
     'v2-sidebar',
@@ -416,16 +448,16 @@ export default function SidebarV2({
     .join(' ');
 
   const sidebarWidth = isDesktop
-    ? collapsed ? COLLAPSED_W : EXPANDED_W
-    : EXPANDED_W;
+    ? collapsed ? COLLAPSED_W : expandedW
+    : expandedW;
 
   return (
     <>
       <motion.aside
         className={sidebarClasses}
         animate={isDesktop ? { width: sidebarWidth } : {}}
-        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        style={{ overflow: 'hidden', flexShrink: 0 }}
+        transition={isDragging ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        style={{ overflow: 'hidden', flexShrink: 0, position: 'relative' }}
       >
         <motion.div
           className="v2-sidebar-inner"
@@ -435,7 +467,7 @@ export default function SidebarV2({
               : { opacity: 1, pointerEvents: 'auto' }
           }
           transition={{ duration: collapsed ? 0.1 : 0.18, ease: 'easeOut' }}
-          style={{ width: EXPANDED_W, height: '100%', display: 'flex', flexDirection: 'column' }}
+          style={{ width: expandedW, height: '100%', display: 'flex', flexDirection: 'column' }}
         >
           <div className="v2-sidebar-header">
             <div className="v2-sidebar-logo">
@@ -581,6 +613,14 @@ export default function SidebarV2({
             </AnimatePresence>
           </div>
         </motion.div>
+
+        {/* Drag Handle */}
+        {isDesktop && !collapsed && (
+          <div
+            className={`v2-resize-handle v2-resize-handle-right ${isDragging ? 'active' : ''}`}
+            onMouseDown={handleDragStart}
+          />
+        )}
       </motion.aside>
     </>
   );

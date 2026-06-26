@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Chart as ReactChart } from 'react-chartjs-2';
 import {
@@ -194,6 +194,19 @@ function getChartOptions(chartType) {
   };
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isDesktop;
+}
+
 export default function AnalyticsPanelV2({
   chartData, chartType, onChartTypeChange,
   collapsed, onToggleCollapse,
@@ -201,6 +214,35 @@ export default function AnalyticsPanelV2({
 }) {
   const chartRef = useRef(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const isDesktop = useIsDesktop();
+
+  // Resizing state
+  const [panelW, setPanelW] = useState(420);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = useCallback((e) => {
+    if (!isDesktop || fullscreen) return;
+    e.preventDefault();
+    setIsDragging(true);
+    document.body.classList.add('is-dragging');
+
+    const handleMouseMove = (eMove) => {
+      let newW = window.innerWidth - eMove.clientX;
+      if (newW < 320) newW = 320;
+      if (newW > 700) newW = 700;
+      setPanelW(newW);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.body.classList.remove('is-dragging');
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [isDesktop, fullscreen]);
 
   const engineType = resolveEngineType(chartType);
   const computedData = useMemo(
@@ -228,10 +270,17 @@ export default function AnalyticsPanelV2({
     <motion.aside
       className={`v2-analytics ${fullscreen ? 'v2-analytics-fullscreen' : ''}`}
       initial={{ opacity: 0, x: '100%' }}
-      animate={{ opacity: 1, x: 0, width: fullscreen ? '100vw' : undefined }}
+      animate={{ opacity: 1, x: 0, width: fullscreen ? '100vw' : (isDesktop ? panelW : undefined) }}
       exit={{ opacity: 0, x: '100%' }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={isDragging ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
+      {/* Drag Handle */}
+      {isDesktop && !fullscreen && (
+        <div
+          className={`v2-resize-handle v2-resize-handle-left ${isDragging ? 'active' : ''}`}
+          onMouseDown={handleDragStart}
+        />
+      )}
       <div className="v2-analytics-header">
         <h3>Analytics</h3>
         <div className="v2-analytics-header-actions" style={{ gap: '14px' }}>

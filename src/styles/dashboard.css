@@ -2309,3 +2309,62 @@
     right: 16px;
   }
 }
+/* "?"? RESIZE HANDLES "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"? */
+.v2-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  cursor: col-resize;
+  z-index: 50;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.v2-resize-handle-right {
+  right: -6px;
+}
+
+.v2-resize-handle-left {
+  left: -6px;
+}
+
+.v2-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--dash-accent);
+  box-shadow: 0 0 8px var(--dash-accent-glow);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.v2-resize-handle:hover {
+  opacity: 1;
+}
+
+.v2-resize-handle:hover::after {
+  opacity: 0.5;
+}
+
+.v2-resize-handle.active {
+  opacity: 1;
+}
+
+.v2-resize-handle.active::after {
+  opacity: 1;
+}
+
+body.is-dragging {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+body.is-dragging * {
+  pointer-events: none !important;
+  user-select: none !important;
+}
