@@ -491,7 +491,7 @@ export default function SidebarV2({
             </div>
           </div>
 
-          <Tooltip label="New Chat" shortcut="Ctrl+N" side="right" disabled={!collapsed} fullWidth={true}>
+          <Tooltip label="New Chat" shortcut="Ctrl+N" side="right" fullWidth={true}>
             <motion.button
               className="v2-new-chat-btn"
               onClick={onNewChat}
@@ -503,15 +503,16 @@ export default function SidebarV2({
             </motion.button>
           </Tooltip>
 
-          <div className="v2-sidebar-search">
-            <Search size={14} />
-            <input
-              id="chat-search-input"
-              type="text"
-              placeholder="Search chats…"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
+          <Tooltip label="Search Chats" shortcut="Ctrl+K" side="right" fullWidth={true}>
+            <div className="v2-sidebar-search">
+              <Search size={14} />
+              <input
+                id="chat-search-input"
+                type="text"
+                placeholder="Search chats…"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
             {searchQuery && (
               <Tooltip label="Clear search">
                 <button
