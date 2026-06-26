@@ -13,6 +13,7 @@ import {
   LogOut,
   Sparkles,
   Settings,
+  PanelLeft,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { sortConversations } from '../../utils/conversationStorage';
