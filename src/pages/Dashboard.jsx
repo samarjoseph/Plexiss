@@ -78,29 +78,12 @@ export default function Dashboard() {
   };
 
   // ── Send Message ───────────────────────────────────────────
-  const handleSend = async () => {
-    if (!inputText.trim() && !stagedFile) return;
+  const handleSend = async (retryText = null, retryFile = null, errorMsgIdToRemove = null) => {
+    const isRetry = retryText !== null || retryFile !== null;
+    const runtimeText = isRetry ? retryText : inputText;
+    const runtimeFile = isRetry ? retryFile : stagedFile;
 
-    const runtimeFile = stagedFile;
-    const runtimeText = inputText;
-    const userMessages = [];
-
-    if (runtimeFile) {
-      userMessages.push({
-        id: `file-${Date.now()}`,
-        sender: 'user',
-        isFileCard: true,
-        fileName: runtimeFile.name,
-        fileSize: `${(runtimeFile.size / 1024).toFixed(1)} KB`,
-      });
-    }
-    if (runtimeText.trim()) {
-      userMessages.push({
-        id: `text-${Date.now()}`,
-        sender: 'user',
-        text: runtimeText,
-      });
-    }
+    if (!runtimeText?.trim() && !runtimeFile) return;
 
     // Lazy conversation creation
     let currentConv = activeConversation;
@@ -114,10 +97,36 @@ export default function Dashboard() {
       setActiveId(targetId);
     }
 
-    const updatedMessages = [...currentConv.messages, ...userMessages];
+    let updatedMessages = currentConv.messages;
+
+    if (errorMsgIdToRemove) {
+      updatedMessages = updatedMessages.filter(m => m.id !== errorMsgIdToRemove);
+    }
+
+    if (!isRetry) {
+      const userMessages = [];
+      if (runtimeFile) {
+        userMessages.push({
+          id: `file-${Date.now()}`,
+          sender: 'user',
+          isFileCard: true,
+          fileName: runtimeFile.name,
+          fileSize: `${(runtimeFile.size / 1024).toFixed(1)} KB`,
+        });
+      }
+      if (runtimeText.trim()) {
+        userMessages.push({
+          id: `text-${Date.now()}`,
+          sender: 'user',
+          text: runtimeText,
+        });
+      }
+      updatedMessages = [...updatedMessages, ...userMessages];
+      setInputText('');
+      setStagedFile(null);
+    }
+
     setConversations((prev) => updateConversation(prev, targetId, { messages: updatedMessages }));
-    setInputText('');
-    setStagedFile(null);
     setIsLoading(true);
 
     try {
@@ -207,9 +216,25 @@ export default function Dashboard() {
       );
     } catch (err) {
       console.error('Plexis API Error:', err);
-      showToast('connection', 'connection');
+      const errorMsg = {
+        id: `err-${Date.now()}`,
+        sender: 'system_error',
+        text: "Plexis couldn't reach the server. Please check your internet connection.",
+        retryPayload: { text: runtimeText, file: runtimeFile }
+      };
+      setConversations((prev) =>
+        updateConversation(prev, targetId, {
+          messages: [...updatedMessages, errorMsg],
+        })
+      );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRetry = (msg) => {
+    if (msg.retryPayload) {
+      handleSend(msg.retryPayload.text, msg.retryPayload.file, msg.id);
     }
   };
 
@@ -276,12 +301,13 @@ export default function Dashboard() {
       />
 
       <ChatAreaV2
-        messages={activeConversation?.messages || []}
-        inputText={inputText}
-        onInputChange={setInputText}
-        onSend={handleSend}
-        stagedFile={stagedFile}
-        onStageFile={setStagedFile}
+          messages={activeConversation?.messages || []}
+          inputText={inputText}
+          onInputChange={setInputText}
+          onSend={handleSend}
+          onRetry={handleRetry}
+          stagedFile={stagedFile}
+          onStageFile={setStagedFile}
         onCancelFile={() => setStagedFile(null)}
         isLoading={isLoading}
         activeDatasetName={activeConversation?.activeDatasetName}
@@ -314,32 +340,23 @@ export default function Dashboard() {
       {/* Toasts */}
       <div className="v2-toast-container">
         <AnimatePresence>
-          {toasts.map((toast) => (
-            <motion.div
-              key={toast.id}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className={`v2-toast ${toast.type}`}
-            >
-              {toast.type === 'connection' ? (
-                <>
-                  <WifiOff size={22} className="v2-toast-icon" />
-                  <span className="v2-toast-title">No connection</span>
-                  <span className="v2-toast-desc">
-                    Please check your internet connection and try again.
-                  </span>
-                </>
-              ) : (
-                <>
-                  {toast.type === 'error' && (
-                    <AlertCircle size={16} className="v2-toast-icon" />
-                  )}
-                  <span>{toast.message}</span>
-                </>
-              )}
-            </motion.div>
-          ))}
+          {toasts.map((toast) => {
+            if (toast.type === 'connection') return null;
+            return (
+              <motion.div
+                key={toast.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                className={`v2-toast ${toast.type}`}
+              >
+                {toast.type === 'error' && (
+                  <AlertCircle size={16} className="v2-toast-icon" />
+                )}
+                <span>{toast.message}</span>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
     </motion.div>

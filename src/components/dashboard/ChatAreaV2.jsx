@@ -31,6 +31,7 @@ export default function ChatAreaV2({
   inputText,
   onInputChange,
   onSend,
+  onRetry,
   stagedFile,
   onStageFile,
   onCancelFile,
@@ -206,7 +207,7 @@ export default function ChatAreaV2({
             key={msg.id}
             className={`v2-msg-row v2-msg-row--${msg.sender}`}
           >
-            <MessageBubbleV2 message={msg} />
+            <MessageBubbleV2 message={msg} onRetry={onRetry} />
           </div>
         ))}
 

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
-import { Sparkles, Globe, ExternalLink, FileSpreadsheet, Copy, Check } from 'lucide-react';
+import { Sparkles, Globe, ExternalLink, FileSpreadsheet, Copy, Check, AlertTriangle, RotateCcw } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
 
-export default function MessageBubbleV2({ message }) {
+export default function MessageBubbleV2({ message, onRetry }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -47,6 +47,42 @@ export default function MessageBubbleV2({ message }) {
           </Tooltip>
         </div>
       </div>
+    );
+  }
+
+  /* ── System Error Messages ── */
+  if (message.sender === 'system_error') {
+    return (
+      <motion.div
+        className="v2-msg-system-error"
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="v2-error-card">
+          <div className="v2-error-header">
+            <AlertTriangle size={18} className="v2-error-icon" />
+            <span>Unable to send your message</span>
+          </div>
+          <div className="v2-error-body">
+            <p>{message.text}</p>
+            <ul>
+              <li>Your internet connection</li>
+              <li>Whether the server is online</li>
+            </ul>
+            <div className="v2-error-actions">
+              <button 
+                type="button" 
+                className="v2-retry-btn" 
+                onClick={() => onRetry?.(message)}
+              >
+                <RotateCcw size={14} />
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 
