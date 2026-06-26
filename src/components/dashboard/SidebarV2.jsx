@@ -464,9 +464,9 @@ export default function SidebarV2({
           {collapsed && (
             <motion.div
               className="v2-sidebar-floating-logo"
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
               <LogoToggle collapsed={true} onToggle={onToggleCollapse} />

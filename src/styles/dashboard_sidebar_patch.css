@@ -19,11 +19,12 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 56px;               /* matches sidebar header height slot */
+  width: auto;               /* auto width to respect content */
   height: 56px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: 14px;        /* match sidebar header padding */
   z-index: 120;              /* above sidebar, below modals */
   pointer-events: auto;
 }
@@ -294,9 +295,9 @@
 }
 
 /* When sidebar is collapsed on desktop, nudge chat content right
-   so the floating logo (56px wide) doesn't overlap the header text */
+   so the floating logo sits perfectly next to the header text */
 .v2-dashboard:has(.v2-sidebar--collapsed) .v2-chat-header {
-  padding-left: 62px;   /* 56px logo zone + 6px breathing room */
+  padding-left: 58px;   /* 14px (padding) + 34px (logo) + 10px (gap) = 58px */
   transition: padding-left 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
