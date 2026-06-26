@@ -207,6 +207,7 @@
   transition: all 0.22s var(--dash-ease);
   font-family: var(--dash-font);
   flex-shrink: 0;
+  width: calc(100% - 20px);
 }
 
 .v2-new-chat-btn:hover {

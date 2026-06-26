@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Tooltip({ children, label, shortcut, side = 'right', disabled = false }) {
+export default function Tooltip({ children, label, shortcut, side = 'right', disabled = false, fullWidth = false }) {
   const [show, setShow] = useState(false);
 
   let pos = {};
@@ -20,7 +20,7 @@ export default function Tooltip({ children, label, shortcut, side = 'right', dis
       className="v2-tip-wrap"
       onMouseEnter={() => !disabled && setShow(true)}
       onMouseLeave={() => setShow(false)}
-      style={{ position: 'relative', display: 'inline-flex' }}
+      style={{ position: 'relative', display: fullWidth ? 'flex' : 'inline-flex', width: fullWidth ? '100%' : 'auto' }}
     >
       {children}
       <AnimatePresence>

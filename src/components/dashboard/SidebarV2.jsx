@@ -491,7 +491,7 @@ export default function SidebarV2({
             </div>
           </div>
 
-          <Tooltip label="New Chat" shortcut="Ctrl+N" side="right" disabled={!collapsed}>
+          <Tooltip label="New Chat" shortcut="Ctrl+N" side="right" disabled={!collapsed} fullWidth={true}>
             <motion.button
               className="v2-new-chat-btn"
               onClick={onNewChat}
