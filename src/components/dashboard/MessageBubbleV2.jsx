@@ -55,32 +55,20 @@ export default function MessageBubbleV2({ message, onRetry }) {
     return (
       <motion.div
         className="v2-msg-system-error"
-        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.3 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
       >
-        <div className="v2-error-card">
-          <div className="v2-error-header">
-            <AlertTriangle size={18} className="v2-error-icon" />
-            <span>Unable to send your message</span>
-          </div>
-          <div className="v2-error-body">
-            <p>{message.text}</p>
-            <ul>
-              <li>Your internet connection</li>
-              <li>Whether the server is online</li>
-            </ul>
-            <div className="v2-error-actions">
-              <button 
-                type="button" 
-                className="v2-retry-btn" 
-                onClick={() => onRetry?.(message)}
-              >
-                <RotateCcw size={14} />
-                Retry
-              </button>
-            </div>
-          </div>
+        <div className="v2-error-compact">
+          <AlertTriangle size={14} className="v2-error-icon-compact" />
+          <span className="v2-error-text-compact">Please check your internet connection and try again.</span>
+          <button 
+            type="button" 
+            className="v2-error-retry-compact" 
+            onClick={() => onRetry?.(message)}
+          >
+            Retry
+          </button>
         </div>
       </motion.div>
     );

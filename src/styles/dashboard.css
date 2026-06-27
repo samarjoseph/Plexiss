@@ -2313,6 +2313,53 @@
   }
 }
 /* "?"? RESIZE HANDLES "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"? */
+.v2-msg-system-error {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.v2-error-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1e1e1e; /* Very dark, almost identical to chat background */
+  border: 1px solid rgba(148, 163, 184, 0.15); /* Very subtle blue/gray border */
+  border-radius: 16px;
+  padding: 8px 12px 8px 14px; /* Compact */
+  max-width: fit-content; /* Only slightly larger than normal message */
+}
+
+.v2-error-icon-compact {
+  color: #f59e0b; /* Small amber/orange */
+  flex-shrink: 0;
+}
+
+.v2-error-text-compact {
+  color: #94a3b8; /* Secondary soft gray */
+  font-size: 0.9rem;
+}
+
+.v2-error-retry-compact {
+  background: #3b82f6; /* Plexis primary blue */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+}
+
+.v2-error-retry-compact:hover {
+  background: #2563eb;
+  transform: scale(1.02);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
 .v2-resize-handle {
   position: absolute;
   top: 0;
@@ -2393,74 +2440,4 @@ body.is-dragging * {
   box-shadow: 0 0 12px var(--dash-accent-glow);
 }
 
-/* --------------------------------------------------------- */
-/* SYSTEM ERROR MESSAGES */
-/* --------------------------------------------------------- */
-.v2-msg-system-error {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: 800px;
-  margin-top: 8px;
-}
 
-.v2-error-card {
-  background: rgba(30, 41, 59, 0.6); /* subtle dark card */
-  backdrop-filter: blur(8px); /* slight blur */
-  border: 1px solid rgba(239, 68, 68, 0.25); /* thin border */
-  border-radius: 12px;
-  padding: 16px;
-  max-width: 450px;
-  color: #94a3b8; /* muted colors */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.v2-error-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #fca5a5; /* muted red for the warning */
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.v2-error-body {
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
-.v2-error-body p {
-  margin-bottom: 8px;
-}
-
-.v2-error-body ul {
-  padding-left: 20px;
-  margin-bottom: 16px;
-  list-style-type: disc;
-}
-
-.v2-error-body li {
-  margin-bottom: 4px;
-}
-
-.v2-retry-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.v2-retry-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-}
