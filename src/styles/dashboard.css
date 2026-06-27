@@ -2324,40 +2324,46 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #1e1e1e; /* Very dark, almost identical to chat background */
-  border: 1px solid rgba(148, 163, 184, 0.15); /* Very subtle blue/gray border */
+  background: #0B0D11; /* Deep charcoal/near-black */
+  border: 1px solid rgba(59, 130, 246, 0.3); /* Dark blue tone border */
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.08); /* Very soft outer glow */
   border-radius: 16px;
-  padding: 8px 12px 8px 14px; /* Compact */
-  max-width: fit-content; /* Only slightly larger than normal message */
+  padding: 8px 12px 8px 14px;
+  max-width: fit-content;
 }
 
 .v2-error-icon-compact {
-  color: #f59e0b; /* Small amber/orange */
+  color: #f59e0b;
   flex-shrink: 0;
 }
 
 .v2-error-text-compact {
-  color: #94a3b8; /* Secondary soft gray */
+  color: #94a3b8;
   font-size: 0.9rem;
 }
 
 .v2-error-retry-compact {
-  background: #3b82f6; /* Plexis primary blue */
+  background: rgba(30, 58, 138, 0.4); /* Dark blue background */
   color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
+  border: 1px solid rgba(59, 130, 246, 0.5); /* Thin glowing blue border */
+  border-radius: 12px; /* 12-14px radius */
+  padding: 5px 12px;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease; /* 180ms ease */
   margin-left: 4px;
 }
 
 .v2-error-retry-compact:hover {
-  background: #2563eb;
+  background: rgba(30, 58, 138, 0.7); /* Slightly lighter background */
+  border-color: rgba(59, 130, 246, 0.9); /* Brighter border */
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); /* Brighter glow */
   transform: scale(1.02);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.v2-error-retry-compact:active {
+  transform: scale(0.98); /* Slight press effect */
 }
 
 .v2-resize-handle {
